@@ -1,31 +1,65 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import os
-import pytz
+import sys
 from datetime import datetime
-import urllib2
+import requests
+
+
+def brutal_error_handler():
+    """ Silly, simple error handling. Never do this. """
+    print("Something went horribly wrong, so we're not continuing")
+    sys.exit(1)
+
 
 # Parameters.
-bookmarkdir = os.environ['HOME'] + '/Dropbox/Personal/pinboard/'
+bookmarkdir = os.path.join(os.environ['HOME'], 'Dropbox/Personal/pinboard')
 pinboard_api = 'https://api.pinboard.in/v1/'
 yearfmt = '%Y'
 datefmt = '%m-%d'
-homeTZ = pytz.timezone('GMT')
-y = datetime.now(pytz.utc).strftime(yearfmt)
-t = datetime.now(pytz.utc).strftime(datefmt)
+y = datetime.utcnow().strftime(yearfmt)
+t = datetime.utcnow().strftime(datefmt)
 
-# Get the user's authentication token
-with open(os.environ['HOME'] + '/.pinboard-credentials') as credentials:
-	for line in credentials:
-		me, token = line.split(':')
+"""
+Get the user's authentication token
+It's available at https://pinboard.in/settings/password
+Store it in your home dir, in a file named .pinboard-credentials
+"""
+try:
+    with open(
+        os.path.join(
+            os.environ['HOME'],
+            '.pinboard-credentials')) as credentials:
+                for line in credentials:
+                    me, token = line.split(':')
+except IOError:
+    print("Couldn't get your credentials from %s" % credentials)
+    brutal_error_handler()
 
-if not os.path.exists(bookmarkdir + y):
-	os.makedirs(bookmarkdir + y)
+outdir = bookmarkdir + y
+if not os.path.exists(outdir):
+    try:
+        os.makedirs(outdir)
+    except OSError:
+        print("Couldn't create a directory at %s" % outdir)
+        brutal_error_handler()
 
-# Set up a new bookmarks file
-bookmarkfile = open(bookmarkdir + y + '/pinboard-backup.' + t + '.xml', 'w')
-
-# Get all the posts from Pinboard
-u = urllib2.urlopen(pinboard_api + 'posts/all?auth_token=' + me + ':' + token)
-bookmarkfile.write(u.read())
-bookmarkfile.close()
+# write a new bookmarks file
+try:
+    with open(
+        os.path.join(
+            outdir, 'pinboard-backup_' + t + '.xml'), 'w') as out:
+        # Get all the posts from Pinboard
+        payload = {"auth_token": me + ":" + token}
+        req = requests.get(
+            pinboard_api + 'posts/all',
+            params=payload)
+        # raise an exception for a 4xx code
+        req.raise_for_status()
+        print("Authentication successful, trying to write backup.")
+        out.write(req.text.encode("utf-8"))
+except IOError:
+    print("Couldn't create new bookmarks file at %s" % outdir)
+    brutal_error_handler()
+print("Done! Backed up bookmarks to %s" % out.name)
