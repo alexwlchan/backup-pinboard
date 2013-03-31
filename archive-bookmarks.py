@@ -34,7 +34,7 @@ try:
                 for line in credentials:
                     me, token = line.split(':')
 except IOError:
-    print("Couldn't get your credentials from %s" % credentials)
+    print("Couldn't get your credentials from %s" % credentials.name)
     brutal_error_handler()
 
 if not me and token:
