@@ -37,6 +37,11 @@ except IOError:
     print("Couldn't get your credentials from %s" % credentials)
     brutal_error_handler()
 
+if not me and token:
+    raise Exception(
+        "There was a problem with your pinboard credentials:\n\
+They should be stored in the format 'pinboard_username:xxxxxxxxxxxxxxxxxxxx'")
+
 outdir = bookmarkdir + y
 if not os.path.exists(outdir):
     try:
