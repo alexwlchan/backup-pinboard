@@ -31,13 +31,12 @@ try:
         os.path.join(
             os.environ['HOME'],
             '.pinboard-credentials')) as credentials:
-                for line in credentials:
-                    me, token = line.split(':')
+                payload = {"auth_token": credentials.readline()}
 except IOError:
     print("Couldn't get your credentials from %s" % credentials.name)
     brutal_error_handler()
 
-if not me and token:
+if not payload.get("auth_token"):
     raise Exception(
         "There was a problem with your pinboard credentials:\n\
 They should be stored in the format 'pinboard_username:xxxxxxxxxxxxxxxxxxxx'")
@@ -50,21 +49,19 @@ if not os.path.exists(outdir):
         print("Couldn't create a directory at %s" % outdir)
         brutal_error_handler()
 
+# Get all the posts from Pinboard
+req = requests.get(
+    pinboard_api + 'posts/all',
+    params=payload)
+# raise an exception for a 4xx code
+req.raise_for_status()
+print("Authentication successful, trying to write backup.")
+
 # write a new bookmarks file
 try:
-    with open(
-        os.path.join(
-            outdir, 'pinboard-backup_' + t + '.xml'), 'w') as out:
-        # Get all the posts from Pinboard
-        payload = {"auth_token": me + ":" + token}
-        req = requests.get(
-            pinboard_api + 'posts/all',
-            params=payload)
-        # raise an exception for a 4xx code
-        req.raise_for_status()
-        print("Authentication successful, trying to write backup.")
-        out.write(req.text.encode("utf-8"))
+    with open(os.path.join(outdir, 'pinboard-backup_' + t + '.xml'), 'w') as o:
+        o.write(req.text.encode("utf-8"))
 except IOError:
     print("Couldn't create new bookmarks file at %s" % outdir)
     brutal_error_handler()
-print("Done! Backed up bookmarks to %s" % out.name)
+print("Done! Backed up bookmarks to %s" % o.name)
