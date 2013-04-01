@@ -10,4 +10,4 @@ The two files in the repository are:
 * `archive-bookmarks.py`. This is the script that does the work. It can be stored anywhere, and should be run periodically (I run it weekly) with something like `cron` or `launchd`. On OS X, I use [Lingon](http://www.peterborgapps.com/lingon/) for this.
 * `pinboard-credentials`. This should be renamed to `.pinboard-credentials` and saved in your home directory. The file should contain your username and API token. Go to the [Password settings](https://pinboard.in/settings/password/) on Pinboard, and copy and paste your API token verbatim into this file.
 
-You don't *need* to keep the archive in Dropbox, but I find it a reasonably convenient place. The directory for the archive can be changed by editing line&nbsp;9 of `archive-bookmarks.py`.
+You don't *need* to keep the archive in Dropbox, but I find it a reasonably convenient place. The directory for the archive can be changed by editing line&nbsp;17 of `archive-bookmarks.py`.
