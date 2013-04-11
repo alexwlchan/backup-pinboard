@@ -14,7 +14,7 @@ def brutal_error_handler():
 
 
 # Parameters.
-bookmarkdir = os.path.join(os.environ['HOME'], 'Dropbox/Personal/pinboard')
+bookmarkdir = os.path.join(os.environ['HOME'], 'Dropbox/Personal/pinboard/')
 pinboard_api = 'https://api.pinboard.in/v1/'
 yearfmt = '%Y'
 datefmt = '%m-%d'
