@@ -31,7 +31,7 @@ try:
         os.path.join(
             os.environ['HOME'],
             '.pinboard-credentials')) as credentials:
-                payload = {"auth_token": credentials.readline()}
+                payload = {"auth_token": credentials.readline().strip()}
 except IOError:
     print("Couldn't get your credentials from %s" % credentials.name)
     brutal_error_handler()
