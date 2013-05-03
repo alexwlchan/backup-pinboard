@@ -21,6 +21,21 @@ datefmt = '%m-%d'
 y = datetime.utcnow().strftime(yearfmt)
 t = datetime.utcnow().strftime(datefmt)
 
+backup = os.path.join(bookmarkdir + y, 'pinboard-backup_' + t + '.xml')
+if len(sys.argv) > 1:
+    backup = os.path.abspath(sys.argv[1])
+
+
+outdir = os.path.dirname(backup)
+
+if not os.path.exists(outdir):
+    try:
+        os.makedirs(outdir)
+    except OSError:
+        print("Couldn't create a directory at %s" % outdir)
+        brutal_error_handler()
+
+
 """
 Get the user's authentication token
 It's available at https://pinboard.in/settings/password
@@ -41,14 +56,6 @@ if not payload.get("auth_token"):
         "There was a problem with your pinboard credentials:\n\
 They should be stored in the format 'pinboard_username:xxxxxxxxxxxxxxxxxxxx'")
 
-outdir = bookmarkdir + y
-if not os.path.exists(outdir):
-    try:
-        os.makedirs(outdir)
-    except OSError:
-        print("Couldn't create a directory at %s" % outdir)
-        brutal_error_handler()
-
 # Get all the posts from Pinboard
 req = requests.get(
     pinboard_api + 'posts/all',
@@ -59,7 +66,7 @@ print("Authentication successful, trying to write backup.")
 
 # write a new bookmarks file
 try:
-    with open(os.path.join(outdir, 'pinboard-backup_' + t + '.xml'), 'w') as o:
+    with open(backup, 'w') as o:
         o.write(req.text.encode("utf-8"))
 except IOError:
     print("Couldn't create new bookmarks file at %s" % outdir)
