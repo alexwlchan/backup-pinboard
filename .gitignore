@@ -1,0 +1,5 @@
+# Virtual environment
+venv
+
+# compiled Python
+*.pyc
