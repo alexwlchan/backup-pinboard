@@ -14,14 +14,14 @@ def brutal_error_handler():
 
 
 # Parameters.
-bookmarkdir = os.path.join(os.environ['HOME'], 'Dropbox/Personal/pinboard/')
+bookmarkdir = os.path.join(os.environ['HOME'], 'vcdb/')
 pinboard_api = 'https://api.pinboard.in/v1/'
 yearfmt = '%Y'
 datefmt = '%m-%d'
 y = datetime.utcnow().strftime(yearfmt)
 t = datetime.utcnow().strftime(datefmt)
 
-backup = os.path.join(bookmarkdir + y, 'pinboard-backup_' + t + '.xml')
+backup = os.path.join(bookmarkdir + y, 'pinboard-backup_' + t + '.json')
 if len(sys.argv) > 1:
     backup = os.path.abspath(sys.argv[1])
 
@@ -46,7 +46,8 @@ try:
         os.path.join(
             os.environ['HOME'],
             '.pinboard-credentials')) as credentials:
-                payload = {"auth_token": credentials.readline().strip()}
+                payload = {"auth_token": credentials.readline().strip(),
+                           "format": "json"}
 except IOError:
     print("Couldn't get your credentials from %s" % credentials.name)
     brutal_error_handler()

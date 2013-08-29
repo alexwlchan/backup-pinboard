@@ -3,3 +3,6 @@ venv
 
 # compiled Python
 *.pyc
+
+# pinboard credentials file
+pinboard-credentials
