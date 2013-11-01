@@ -1,0 +1,11 @@
+# Virtual environment
+venv
+
+# compiled Python
+*.pyc
+
+# pinboard credentials file
+pinboard-credentials
+
+# swap files
+*.swp
