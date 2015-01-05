@@ -1,75 +1,136 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/python
 
-import argparse
-import os
-import requests
-import sys
 from datetime import datetime
+import optparse
+import os
+import sys
 
+import keyring
+import requests
 
-# Parameters
-parser = argparse.ArgumentParser()
-parser.add_argument("-d", "--directory",
-                    help="Directory for bookmark file (default ~)")
-parser.add_argument("-f", "--format", help="Format for dump (xml or json)")
-args = parser.parse_args()
+import applescript
 
-if args.directory:
-    bookmarkdir = args.directory
-else:
-    bookmarkdir = os.environ['HOME']
+#------------------------------------------------------------------------------
+# Global constants
+#------------------------------------------------------------------------------
+PINBOARD_API = 'https://api.pinboard.in/v1/'
+VALID_FORMATS = ['json', 'xml']
 
-if args.format == 'json' or args.format == 'JSON':
-    dumpformat = 'json'
-else:
-    dumpformat = 'xml'
+#------------------------------------------------------------------------------
+# Utility functions
+#------------------------------------------------------------------------------
+def notification(message_str):
+    """Makes a notification about the backup status, and prints the error to
+    stdout.
+    """
+    print(message_str)
+    osacommand = ''.join([
+        'display notification "%s" ' % message_str,
+        'with title "Pinboard backup"'
+    ])
+    applescript.asrun(osacommand)
 
-pinboard_api = 'https://api.pinboard.in/v1/'
-yearfmt = '%Y'
-datefmt = '%m-%d'
-y = datetime.utcnow().strftime(yearfmt)
-t = datetime.utcnow().strftime(datefmt)
+def error_notification(error_str):
+    notification(error_str)
+    sys.exit(1)
 
-backup = os.path.join(bookmarkdir, y, 'pinboard-backup_' + t + '.' + dumpformat)
+def backup_file(backup_dir, dumpformat="xml"):
+    """Returns the name of the backup file, and creates the intermediate
+    directories.
+    """
+    # Get the year and month-day strings
+    year = datetime.now().strftime("%Y")
+    today = datetime.now().strftime("%m-%d")
 
-outdir = os.path.dirname(backup)
+    # Backups are organised by year directory
+    year_dir = os.path.join(backup_dir, year)
+    if not os.path.isdir(year_dir):
+        os.makedirs(year_dir)
 
-if not os.path.exists(outdir):
+    filename = "pinboard-backup.{}.{}".format(today, dumpformat)
+    backup_file = os.path.join(year_dir, filename)
+
+    return backup_file
+
+def authentication_token(username):
+    """Returns the authentication token for Pinboard, or raises an exception if
+    it isn't found.
+    """
+    auth_token = keyring.get_password("pinboard", username)
+
+    # Check whether it found an API token
+    if auth_token is None:
+        error_notification("No Pinboard API token found for user %s." % username)
+
+    return auth_token
+
+def backup_all_posts(auth_token, outfile, dumpformat="xml"):
+    """Download all the posts from the Pinboard API, and write them out to a
+    file.
+    """
+    payload = {
+        "auth_token": auth_token,
+        "format": dumpformat
+    }
+
+    # Download all the posts from the API
+    req = requests.get(
+        PINBOARD_API + 'posts/all',
+        params=payload
+    )
+
+    # Check we have a successful status code
+    if not req.status_code == requests.codes.ok:
+        error_notification("Bad return code from the Pinboard API.")
+
+    # Otherwise try to write the backup file
     try:
-        os.makedirs(outdir)
-    except OSError:
-        raise Exception("Couldn't create a directory at %s" % outdir)
+        with open(outfile, 'w') as f:
+            f.write(req.text.encode('utf-8'))
+    except IOError:
+        error_notification("Couldn't create new backup file at %s" % outfile)
 
-"""
-Get the user's authentication token
-It's available at https://pinboard.in/settings/password
-Store it in your home dir, in a file named .pinboard-credentials
-"""
-try:
-    with open(os.path.join(os.environ['HOME'],
-              '.pinboard-credentials')) as credentials:
-        payload = {"auth_token": credentials.readline().strip(),
-                   "format": dumpformat}
-except IOError:
-    raise Exception("Couldn't get your credentials from %s" % credentials.name)
+    notification("Bookmarks successfully backed up to %s!" % outfile)
 
-if not payload.get("auth_token"):
-    raise Exception(
-        "There was a problem with your pinboard credentials:\n\
-They should be stored in the format 'pinboard_username:xxxxxxxxxxxxxxxxxxxx'")
+#------------------------------------------------------------------------------
+# Mainline program function
+#------------------------------------------------------------------------------
+def main():
 
-# Get all the posts from Pinboard
-req = requests.get(pinboard_api + 'posts/all', params=payload)
-# raise an exception for a 4xx code
-req.raise_for_status()
-print("Authentication successful, trying to write backup.")
+    #--------------------------------------------------------------------------
+    # Set up command-line options
+    #--------------------------------------------------------------------------
+    parser = optparse.OptionParser(description="""A script for backing up
+Pinboard bookmarks.""")
+    parser.add_option("-d", "--directory",
+                      help="Directory for bookmark file (default ~)")
+    parser.add_option("-f", "--format",
+                      help="Format for dump (xml or json, default xml)")
+    parser.add_option("-u", "--username",
+                      help="Username of the Pinboard account.")
+    (options, args) = parser.parse_args()
 
-# write a new bookmarks file
-try:
-    with open(backup, 'w') as o:
-        o.write(req.text.encode("utf-8"))
-except IOError:
-    raise Exception("Couldn't create new bookmarks file at %s" % outdir)
+    #--------------------------------------------------------------------------
+    # Validate user input
+    #--------------------------------------------------------------------------
+    if options.directory is None:
+        options.directory = os.environ['HOME']
 
-print("Done! Backed up bookmarks to %s" % o.name)
+    if options.format is None:
+        options.format = 'xml'
+    else:
+        if options.format not in VALID_FORMATS:
+            error_notification("Invalid dump format %s." % options.format)
+
+    if options.username is None:
+        error_notification("No username supplied.")
+
+    #--------------------------------------------------------------------------
+    # Get the bookmarks
+    #--------------------------------------------------------------------------
+    outfile = backup_file(options.directory, options.format)
+    auth_token = authentication_token(options.username)
+    backup_all_posts(auth_token=auth_token, outfile=outfile)
+
+if __name__ == '__main__':
+    main()

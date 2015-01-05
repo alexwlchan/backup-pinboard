@@ -1,13 +1,22 @@
 Pinboard archiver
 ================
 
-This Python script and the related files will download your bookmarks from Pinboard and save them in an XML archive on your computer, which can be imported into another bookmarking site, or Pinboard if you have an account problem. The script is described in [this blog post](http://alexwlchan.net/blog/2013/03/pinboard-backups/).
+This is a Python script for backing up your bookmarks and saving them to your computer.
 
-The script can be run as frequently as you want; every time you run the script, a new backup is created. (However, it will only create one backup file per day unless you modify the script.)
+The original script was written and posted [in March 2013][1], and rewritten in January 2015. You can still get the original script, but the new version is hopefully more robust.
 
-The two files in the repository are:
+New features:
 
-* `archive-bookmarks.py`. This is the script that does the work. It can be stored anywhere, and should be run periodically (I run it weekly) with something like `cron` or `launchd`. On OS X, I use [Lingon](http://www.peterborgapps.com/lingon/) for this.
-* `pinboard-credentials`. This should be renamed to `.pinboard-credentials` and saved in your home directory. The file should contain your username and API token. Go to the [Password settings](https://pinboard.in/settings/password/) on Pinboard, and copy and paste your API token verbatim into this file.
+*   Rather than storing credentials in a plaintext file in the home directory, I'm now using the `keyring` module, which stores them in the OS keychain. This is more secure and convenient. To store a new token:
 
-You don't *need* to keep the archive in Dropbox, but I find it a reasonably convenient place. The directory for the archive can be changed by editing line&nbsp;17 of `archive-bookmarks.py`.
+        >>> import keyring
+        >>> keyring.set_password("pinboard", "username", "ABC123")
+
+*   Better error handling and reporting. I run this script nightly, but I'd only realise it had failed if I happened to stumble across the directory where I was keeping the backups and noticed it was out-of-date. Oops.
+
+    Now it integrates with [Dr Drang's applescript module][2] and puts up OS X notification banners if something goes wrong. If you're not on OS X, you can edit the `notification()` function to remove the AppleScript dependency.
+
+*   Overall, it just benefits from nearly two years of additional programming experience (on my part), including several months of writing Python in my new job.
+
+[1]: http://alexwlchan.net/blog/2013/03/pinboard-backups/
+[2]: http://www.leancrew.com/all-this/2013/03/combining-python-and-applescript/
