@@ -5,6 +5,12 @@ This is a Python script for backing up your bookmarks and saving them to your co
 
 The original script was written and posted [in March 2013][1], and rewritten in January 2015. You can still get the original script, but the new version is hopefully more robust.
 
+Requirements:
+
+*   The `requests` and `keyring` module.
+*   Your Pinboard API token stored in the system keychain (see below).
+*   The [`applescript` module][2] from Dr. Drang
+
 New features:
 
 *   Rather than storing credentials in a plaintext file in the home directory, I'm now using the `keyring` module, which stores them in the OS keychain. This is more secure and convenient. To store a new token:
