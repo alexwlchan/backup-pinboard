@@ -4,3 +4,6 @@ version = "0.1.0"
 authors = ["Alex Chan <alex@alexwlchan.net>"]
 
 [dependencies]
+docopt = "0.8.1"
+serde = "1.0.10"
+serde_derive = "1.0"
