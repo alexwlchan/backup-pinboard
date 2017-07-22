@@ -1,28 +1,44 @@
-Pinboard archiver
-================
+# backup-pinboard
 
-This is a Python script for backing up your bookmarks and saving them to your computer.
+This is a tool for creating a local backup of your Pinboard bookmarks.
 
-The original script was written and posted [in March 2013][1], and rewritten in January 2015. You can still get the original script, but the new version is hopefully more robust.
+## Installation
 
-Requirements:
+Building this project [requires Rust][rust] (1.19 or later).
+Then install the project using Cargo:
 
-*   The `requests` and `keyring` module.
-*   Your Pinboard API token stored in the system keychain (see below).
-*   The [`applescript` module][2] from Dr. Drang
+```console
+$ cargo install --git https://github.com/alexwlchan/backup-pinboard.git
+```
 
-New features:
+You need to add `~/.cargo/bin` to your PATH.
 
-*   Rather than storing credentials in a plaintext file in the home directory, I'm now using the `keyring` module, which stores them in the OS keychain. This is more secure and convenient. To store a new token:
+[rust]: https://www.rust-lang.org/en-US/
 
-        >>> import keyring
-        >>> keyring.set_password("pinboard", "username", "ABC123")
+## Usage
 
-*   Better error handling and reporting. I run this script nightly, but I'd only realise it had failed if I happened to stumble across the directory where I was keeping the backups and noticed it was out-of-date. Oops.
+Download your bookmarks metadata:
 
-    Now it integrates with [Dr Drang's applescript module][2] and puts up OS X notification banners if something goes wrong. If you're not on OS X, you can edit the `notification()` function to remove the AppleScript dependency.
+```console
+$ backup-pinboard metadata --username=USERNAME --password=PASSWORD
+```
 
-*   Overall, it just benefits from nearly two years of additional programming experience (on my part), including several months of writing Python in my new job.
+This downloads your metadata to `bookmarks.json`.
+You can specify an alternative path with `--outfile`, for example:
 
-[1]: http://alexwlchan.net/blog/2013/03/pinboard-backups/
-[2]: http://www.leancrew.com/all-this/2013/03/combining-python-and-applescript/
+```console
+$ backup-pinboard metadata --username=USERNAME --password=PASSWORD --outfile=~/backups/pinboard.json
+```
+
+If the outfile name ends in `.xml`, metadata is saved as XML instead of JSON.
+
+## The old Python script
+
+This used to be a Python script; in July 2017 I completely rewrote the tool in Rust.
+You can browse the repo [at commit 6dcc06e][python] for the last version of the Python scripts.
+
+[python]: https://github.com/alexwlchan/backup-pinboard/tree/6dcc06e49a4863803d5a2a0c9ac23bfec2f4bcf3
+
+## License
+
+MIT.
