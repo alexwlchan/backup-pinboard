@@ -5,5 +5,7 @@ authors = ["Alex Chan <alex@alexwlchan.net>"]
 
 [dependencies]
 docopt = "0.8.1"
+reqwest = "0.7.1"
 serde = "1.0.10"
 serde_derive = "1.0"
+url = "1.5.1"
