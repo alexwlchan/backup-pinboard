@@ -1,0 +1,6 @@
+[package]
+name = "backup-pinboard"
+version = "0.1.0"
+authors = ["Alex Chan <alex@alexwlchan.net>"]
+
+[dependencies]
