@@ -3,10 +3,12 @@ use std::io::Write;
 use std::process;
 
 extern crate docopt;
+extern crate hyper;
 extern crate reqwest;
 #[macro_use]
 extern crate serde_derive;
 
+mod assets;
 mod cli;
 mod metadata;
 
@@ -20,7 +22,7 @@ fn main() {
         println!("{} v{}", NAME, VERSION);
     }
 
-    if args.cmd_metadata {
+    else if args.cmd_metadata {
         let username = args.flag_username.unwrap();
         let password = args.flag_password.unwrap();
         let outfile = args.flag_outfile.unwrap_or("bookmarks.json".to_owned());
@@ -32,7 +34,12 @@ fn main() {
         let _ = buffer.write(data.as_bytes());
     }
 
-    if args.cmd_archive {
+    else if args.cmd_archive {
+        let username = args.flag_username.unwrap();
+        let password = args.flag_password.unwrap();
+
+        let cache_ids = assets::get_cache_ids(username, password);
+        println!("{:?}", cache_ids);
         eprintln!("Archive backups are not implemented yet!");
         process::exit(2);
     }
