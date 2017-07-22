@@ -22,17 +22,17 @@ Commands:
 
 #[derive(Debug, Deserialize)]
 pub struct Args {
-  pub cmd_metadata: bool,
-  pub cmd_archive: bool,
-  pub flag_version: bool,
-  pub flag_username: Option<String>,
-  pub flag_password: Option<String>,
-  pub flag_outfile: Option<String>,
-  pub flag_outdir: Option<String>,
+    pub cmd_metadata: bool,
+    pub cmd_archive: bool,
+    pub flag_version: bool,
+    pub flag_username: Option<String>,
+    pub flag_password: Option<String>,
+    pub flag_outfile: Option<String>,
+    pub flag_outdir: Option<String>,
 }
 
 pub fn parse_args(name: &str) -> Args {
-  Docopt::new(str::replace(USAGE, "<NAME>", name))
-    .and_then(|d| d.deserialize())
-    .unwrap_or_else(|e| e.exit())
+    Docopt::new(str::replace(USAGE, "<NAME>", name))
+        .and_then(|d| d.deserialize())
+        .unwrap_or_else(|e| e.exit())
 }
