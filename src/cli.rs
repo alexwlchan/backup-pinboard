@@ -1,8 +1,8 @@
 use docopt::Docopt;
 
 const USAGE: &str = "
-Usage: <NAME> metadata --username=<USERNAME> --password=<PASSWORD> [--outfile=<OUTFILE>]
-       <NAME> archive --username=<USERNAME> --password=<PASSWORD> [--outdir=<OUTDIR>]
+Usage: <NAME> metadata --username=<USERNAME> --password=<PASSWORD>
+       <NAME> archive --username=<USERNAME> --password=<PASSWORD>
        <NAME> (-h | --help)
        <NAME> --version
 
@@ -11,11 +11,9 @@ Options:
   --version               Show version.
   --username=<USERNAME>   Pinboard username.
   --password=<PASSWORD>   Pinboard password.
-  --outfile=<OUTFILE>     Write your bookmark metadata to OUTFILE.
-  --outdir=<OUTDIR>       Save your archived bookmarks in OUTDIR.
 
 Commands:
-  metadata                Save a JSON file containing metadata about all your
+  metadata                Save a file containing metadata about all your
                           bookmarks.
   archive                 Download a copy of the bookmarks saved by the
                           Pinboard archiver (https://pinboard.in/upgrade/).

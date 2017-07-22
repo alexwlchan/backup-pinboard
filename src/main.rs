@@ -1,3 +1,5 @@
+use std::process;
+
 extern crate docopt;
 extern crate reqwest;
 #[macro_use]
@@ -19,5 +21,10 @@ fn main() {
   if args.cmd_metadata {
     let data = metadata::get_metadata(args.flag_username.unwrap(), args.flag_password.unwrap());
     println!("{}", data);
+  }
+
+  if args.cmd_archive {
+    eprintln!("Archive backups are not implemented yet!");
+    process::exit(2);
   }
 }
