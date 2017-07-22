@@ -21,9 +21,13 @@ fn main() {
     }
 
     if args.cmd_metadata {
-        let data = metadata::get_metadata(args.flag_username.unwrap(), args.flag_password.unwrap());
+        let username = args.flag_username.unwrap();
+        let password = args.flag_password.unwrap();
+        let outfile = args.flag_outfile.unwrap_or("bookmarks.json".to_owned());
 
-        let mut buffer = File::create("bookmarks.xml").unwrap();
+        let data = metadata::get_metadata(username, password);
+
+        let mut buffer = File::create(&outfile).unwrap();
         let _ = buffer.write(data.as_bytes());
     }
 
