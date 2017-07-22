@@ -27,8 +27,13 @@ pub fn guess_format(outfile_name: &str) -> Format {
 ///
 pub fn get_metadata(username: String, password: String, format: Format) -> String {
 
+    let url = match format {
+        Format::XML => "https://api.pinboard.in/v1/posts/all",
+        Format::JSON => "https://api.pinboard.in/v1/posts/all?format=json",
+    };
+
     let client = reqwest::Client::new().unwrap();
-    let resp = client.get("https://api.pinboard.in/v1/posts/all")
+    let resp = client.get(url)
         .unwrap()
         .basic_auth(username, Some(password))
         .send();
