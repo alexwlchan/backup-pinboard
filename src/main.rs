@@ -24,8 +24,9 @@ fn main() {
         let username = args.flag_username.unwrap();
         let password = args.flag_password.unwrap();
         let outfile = args.flag_outfile.unwrap_or("bookmarks.json".to_owned());
+        let format = metadata::guess_format(&outfile);
 
-        let data = metadata::get_metadata(username, password);
+        let data = metadata::get_metadata(username, password, format);
 
         let mut buffer = File::create(&outfile).unwrap();
         let _ = buffer.write(data.as_bytes());
