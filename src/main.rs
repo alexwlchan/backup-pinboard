@@ -1,3 +1,5 @@
+use std::fs::File;
+use std::io::Write;
 use std::process;
 
 extern crate docopt;
@@ -20,7 +22,9 @@ fn main() {
 
   if args.cmd_metadata {
     let data = metadata::get_metadata(args.flag_username.unwrap(), args.flag_password.unwrap());
-    println!("{}", data);
+
+    let mut buffer = File::create("bookmarks.xml").unwrap();
+    let _ = buffer.write(data.as_bytes());
   }
 
   if args.cmd_archive {
