@@ -6,16 +6,16 @@ use reqwest;
 
 /// Represents the different formats returned
 pub enum Format {
-  json,
-  xml,
+  JSON,
+  XML,
 }
 
 
 pub fn guess_format(outfile_name: &str) -> Format {
   if outfile_name.to_lowercase().ends_with(".xml") {
-    Format::xml
+    Format::XML
   } else {
-    Format::json
+    Format::JSON
   }
 }
 
