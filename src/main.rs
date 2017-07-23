@@ -39,9 +39,16 @@ fn main() {
         let username = args.flag_username.unwrap();
         let password = args.flag_password.unwrap();
 
-        let cache_ids = assets::get_cache_ids(username, password);
+        let cache_ids = assets::get_cache_ids(&username, &password);
         println!("{:?}", cache_ids);
-        eprintln!("Archive backups are not implemented yet!");
-        process::exit(2);
+
+        process::Command::new("wget")
+            .args(&["--save-cookies", "/tmp/pinboard-cookies.txt"])
+            .arg("--keep-session-cookies")
+            .arg("--delete-after")
+            .args(&["--post-data", &format!("username={}&password={}", username, password)])
+            .arg("https://pinboard.in/auth/")
+            .spawn()
+            .expect("Failed to authenticate against Pinboard with wget");
     }
 }

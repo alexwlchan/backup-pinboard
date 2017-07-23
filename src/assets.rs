@@ -159,7 +159,7 @@ fn update_cache_ids_for_path(client: &Client, path: &str, cookie: &Cookie, mut c
 ///  - `username`: Pinboard username
 ///  - `password`: Pinboard password
 ///
-pub fn get_cache_ids(username: String, password: String) -> HashMap<String, String> {
+pub fn get_cache_ids(username: &str, password: &str) -> HashMap<String, String> {
 
     let client = Client::new().unwrap();
     let cookie = get_login_cookie(&username, &password);
