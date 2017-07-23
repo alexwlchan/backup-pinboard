@@ -56,25 +56,9 @@ fn get_login_cookie(username: &str, password: &str) -> Cookie {
 }
 
 
-/// Return a map from URLs to Pinboard cache IDs.
-///
-///  - `username`: Pinboard username
-///  - `password`: Pinboard password
-///
-pub fn get_cache_ids(username: String, password: String) -> HashMap<String, String> {
-
-    let client = Client::new().unwrap();
-    let cookie = get_login_cookie(&username, &password);
-
-    // Now fetch a blob of HTML for the first page.
-    let url = format!("https://pinboard.in/u:{}/", username);
-    let resp = client.get(&url)
-        .unwrap()
-        .header(cookie)
-        .send();
-    let mut content = String::new();
-    let _ = resp.ok().unwrap().read_to_string(&mut content);
-
+/// Given a blob of HTML from a Pinboard index, update the map of cache IDs
+/// and corresponding links.
+fn get_cache_ids_from_html(html: &str, cache_ids: &mut HashMap<String, String>) {
     // Parsing HTML with regex or string manipulation is, in general,
     // a terrible idea.  I'm doing it here because I couldn't work out how
     // to use html5ever from their API docs, and I'm tired.
@@ -85,7 +69,7 @@ pub fn get_cache_ids(username: String, password: String) -> HashMap<String, Stri
     //      <div id="bookmarks"> … </div>
     //
     // block, so start by extracting that.
-    let bookmarks_div = content
+    let bookmarks_div = html
         .split("<div id=\"bookmarks\">").collect::<Vec<&str>>()[1]
         .split("<div id=\"right_bar\">").collect::<Vec<&str>>()[0];
 
@@ -116,8 +100,6 @@ pub fn get_cache_ids(username: String, password: String) -> HashMap<String, Stri
         "<a class=\"bookmark_title[a-z_ ]+\"\\s*href=\"(?P<link_href>[^\"]+)\""
     ).unwrap();
 
-    let mut links = HashMap::new();
-
     for b in bookmarks {
         if cached_re.is_match(b) {
             let cache_match = cached_re.captures(b)
@@ -128,12 +110,64 @@ pub fn get_cache_ids(username: String, password: String) -> HashMap<String, Stri
                 .unwrap()["link_href"]
                 .to_owned();
 
-            links.insert(link_match, cache_match);
+            cache_ids.insert(link_match, cache_match);
         } else {
             // This doesn't have a link, so we can't save it.
             continue;
         }
     }
+}
 
-    links
+
+fn get_html_for_page(client: &Client, path: &str, cookie: &Cookie) -> String {
+    let url = format!("https://pinboard.in{}", path);
+    let resp = client.get(&url)
+        .unwrap()
+        .header(cookie.to_owned())
+        .send();
+    let mut content = String::new();
+    let _ = resp.ok().unwrap().read_to_string(&mut content);
+    content
+}
+
+
+fn get_next_page_path(html: &str) -> Option<String> {
+    let next_href_re = Regex::new(
+        "<a class=\"next_prev\" href=\"(?P<next_href>[^\"]+)\">« earlier"
+    ).unwrap();
+
+    match next_href_re.captures(html) {
+        Some(s) => Some(s["next_href"].to_owned()),
+        None => None,
+    }
+}
+
+
+fn update_cache_ids_for_path(client: &Client, path: &str, cookie: &Cookie, mut cache_ids: &mut HashMap<String, String>) {
+    println!("Inspecting path {}", path);
+    let content = get_html_for_page(&client, &path, &cookie);
+    get_cache_ids_from_html(&content, &mut cache_ids);
+    match get_next_page_path(&content) {
+        Some(next_path) => update_cache_ids_for_path(&client, &next_path, &cookie, &mut cache_ids),
+        None => {}
+    };
+}
+
+
+/// Return a map from URLs to Pinboard cache IDs.
+///
+///  - `username`: Pinboard username
+///  - `password`: Pinboard password
+///
+pub fn get_cache_ids(username: String, password: String) -> HashMap<String, String> {
+
+    let client = Client::new().unwrap();
+    let cookie = get_login_cookie(&username, &password);
+    let mut cache_ids = HashMap::new();
+
+    // Now fetch a blob of HTML for the first page.
+    let path = format!("/u:{}/", username);
+    update_cache_ids_for_path(&client, &path, &cookie, &mut cache_ids);
+
+    cache_ids
 }
