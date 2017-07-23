@@ -3,6 +3,7 @@ use std::io::Read;
 use std::process;
 
 use hyper::header::Header;
+use regex::Regex;
 use reqwest::header::{Cookie, Location, SetCookie};
 use reqwest::{Client, RedirectPolicy};
 
@@ -74,7 +75,65 @@ pub fn get_cache_ids(username: String, password: String) -> HashMap<String, Stri
     let mut content = String::new();
     let _ = resp.ok().unwrap().read_to_string(&mut content);
 
-    // println!("{:?}", content);
+    // Parsing HTML with regex or string manipulation is, in general,
+    // a terrible idea.  I'm doing it here because I couldn't work out how
+    // to use html5ever from their API docs, and I'm tired.
+    // TODO: Write this to be not terrible.
 
-    HashMap::new()
+    // All the bookmarks on a page are in a
+    //
+    //      <div id="bookmarks"> … </div>
+    //
+    // block, so start by extracting that.
+    let bookmarks_div = content
+        .split("<div id=\"bookmarks\">").collect::<Vec<&str>>()[1]
+        .split("<div id=\"right_bar\">").collect::<Vec<&str>>()[0];
+
+    // Individual bookmarks always have
+    //
+    //      <div name="edit_checkbox" class="edit_checkbox>">
+    //
+    // at the top, so we can use this as a rough proxy for bookmarks.
+    let mut bookmarks = bookmarks_div
+        .split("<div name=\"edit_checkbox\" class=\"edit_checkbox\">");
+
+    // Discard the first entry.
+    bookmarks.next();
+
+    // The links to cached bookmarks are of the form
+    //
+    //      <a class="cached" href="/cached/123456789abcdef/">☑</a>
+    //
+    let cached_re = Regex::new(
+        "<a class=\"cached\" href=\"/cached/(?P<cache_id>[0-9a-f]+)/\">"
+    ).unwrap();
+
+    // The links to bookmarks are of the form
+    //
+    //      <a class="bookmark_title" href="..."
+    //
+    let link_re = Regex::new(
+        "<a class=\"bookmark_title[a-z_ ]+\"\\s*href=\"(?P<link_href>[^\"]+)\""
+    ).unwrap();
+
+    let mut links = HashMap::new();
+
+    for b in bookmarks {
+        if cached_re.is_match(b) {
+            let cache_match = cached_re.captures(b)
+                .unwrap()["cache_id"]
+                .to_owned();
+
+            let link_match = link_re.captures(b)
+                .unwrap()["link_href"]
+                .to_owned();
+
+            links.insert(link_match, cache_match);
+        } else {
+            // This doesn't have a link, so we can't save it.
+            continue;
+        }
+    }
+
+    links
 }

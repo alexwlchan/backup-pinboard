@@ -4,6 +4,7 @@ use std::process;
 
 extern crate docopt;
 extern crate hyper;
+extern crate regex;
 extern crate reqwest;
 #[macro_use]
 extern crate serde_derive;
