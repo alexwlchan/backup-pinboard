@@ -2,7 +2,7 @@ use docopt::Docopt;
 
 const USAGE: &str = "
 Usage: <NAME> metadata --username=<USERNAME> --password=<PASSWORD> [--outfile=<OUTFILE>]
-       <NAME> archive --username=<USERNAME> --password=<PASSWORD>
+       <NAME> archive --username=<USERNAME> --password=<PASSWORD> [--outdir=<OUTDIR>]
        <NAME> (-h | --help)
        <NAME> --version
 
@@ -12,6 +12,7 @@ Options:
   --username=<USERNAME>   Pinboard username.
   --password=<PASSWORD>   Pinboard password.
   --outfile=<OUTFILE>     Write your bookmark metadata to OUTFILE.
+  --outdir=<OUTDIR>       Save your archived bookmarks in OUTDIR.
 
 Commands:
   metadata                Save a file containing metadata about all your
@@ -29,6 +30,7 @@ pub struct Args {
     pub flag_username: Option<String>,
     pub flag_password: Option<String>,
     pub flag_outfile: Option<String>,
+    pub flag_outdir: Option<String>,
 }
 
 pub fn parse_args(name: &str) -> Args {

@@ -20,7 +20,7 @@ fn get_login_cookie(username: &str, password: &str) -> Cookie {
         .redirect(RedirectPolicy::none())
         .build()
         .unwrap();
-    println!("foo");
+
     let resp = client.post("https://pinboard.in/auth/")
         .unwrap()
         .form(&[("username", &username), ("password", &password)])
