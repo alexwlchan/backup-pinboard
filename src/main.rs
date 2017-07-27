@@ -75,6 +75,7 @@ fn main() {
                 .arg("--convert-links")
                 .arg("--page-requisites")
                 .arg("--no-directories")
+                .args(&["-e", "robots=off"])
                 .args(&["--load-cookies", "/tmp/pinboard-cookies.txt"])
                 .args(&["--output-file", "-"])
                 .args(&["--directory-prefix", &local_out_dir])
