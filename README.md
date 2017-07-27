@@ -32,6 +32,12 @@ $ backup-pinboard metadata --username=USERNAME --password=PASSWORD --outfile=~/b
 
 If the outfile name ends in `.xml`, metadata is saved as XML instead of JSON.
 
+If you have an archival account, you can also download copies of your saved pages:
+
+```console
+$ backup-pinboard archive --username=USERNAME --password=PASSWORD --outdir=~/backups/pinboard-archive
+```
+
 ## The old Python script
 
 This used to be a Python script; in July 2017 I completely rewrote the tool in Rust.

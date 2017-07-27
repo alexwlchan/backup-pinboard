@@ -1,10 +1,12 @@
 [package]
 name = "backup-pinboard"
-version = "0.1.0"
+version = "1.0.0"
 authors = ["Alex Chan <alex@alexwlchan.net>"]
 
 [dependencies]
 docopt = "0.8.1"
+hyper = "0.11.1"
+regex = "0.2.2"
 reqwest = "0.7.1"
 serde = "1.0.10"
 serde_derive = "1.0"
